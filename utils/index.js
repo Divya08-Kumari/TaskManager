@@ -1,102 +1,40 @@
-export const formatDate = (date) => {
-  // Get the month, day, and year
-  const month = date.toLocaleString("en-US", { month: "short" });
-  const day = date.getDate();
-  const year = date.getFullYear();
+// import jwt from "jsonwebtoken";
 
-  // Format the date as "MM dd, yyyy"
-  const formattedDate = `${day}-${month}-${year}`;
+// const createJWT = (res, userId) => {
+//   const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
+//     expiresIn: "1d",
+//   });
 
-  return formattedDate;
-};
+//   res.cookie("token", token, {
+//     httpOnly: true,
+//     secure: process.env.NODE_ENV !== "development", // Use secure cookies in production
+//     sameSite: "none", // Prevent CSRF attacks
+//     maxAge: 1 * 24 * 60 * 60 * 1000, // 1 days
+//   });
+// };
 
-export function dateFormatter(dateString) {
-  const inputDate = new Date(dateString);
+// export default createJWT;
 
-  if (isNaN(inputDate)) {
-    return "Invalid Date";
+import jwt from "jsonwebtoken";
+
+const createJWT = (res, userId) => {
+  try {
+    const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
+      expiresIn: "1d", // expires in 1 day
+    });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== "development", // true in production
+      sameSite: process.env.NODE_ENV !== "development" ? "none" : "lax", // secure for cross-site in prod
+      maxAge: 24 * 60 * 60 * 1000, // 1 day in ms
+    });
+
+    return token; // optional but helpful for debugging or testing
+  } catch (error) {
+    console.error("❌ JWT creation failed:", error.message);
   }
-
-  const year = inputDate.getFullYear();
-  const month = String(inputDate.getMonth() + 1).padStart(2, "0");
-  const day = String(inputDate.getDate()).padStart(2, "0");
-
-  const formattedDate = `${year}-${month}-${day}`;
-  return formattedDate;
-}
-
-export function getInitials(fullName) {
-  const names = fullName.split(" ");
-
-  const initials = names.slice(0, 2).map((name) => name[0].toUpperCase());
-
-  const initialsStr = initials.join("");
-
-  return initialsStr;
-}
-
-export const updateURL = ({ searchTerm, navigate, location }) => {
-  const params = new URLSearchParams();
-
-  if (searchTerm) {
-    params.set("search", searchTerm);
-  }
-
-  const newURL = `${location?.pathname}?${params.toString()}`;
-  navigate(newURL, { replace: true });
-
-  return newURL;
 };
 
-export const PRIOTITYSTYELS = {
-  high: "text-red-600",
-  medium: "text-yellow-600",
-  low: "text-blue-600",
-};
+export default createJWT;
 
-export const TASK_TYPE = {
-  todo: "bg-blue-600",
-  "in progress": "bg-yellow-600",
-  completed: "bg-green-600",
-};
-
-export const BGS = [
-  "bg-blue-600",
-  "bg-yellow-600",
-  "bg-red-600",
-  "bg-green-600",
-];
-
-export const getCompletedSubTasks = (items) => {
-  const totalCompleted = items?.filter((item) => item?.isCompleted).length;
-
-  return totalCompleted;
-};
-
-export function countTasksByStage(tasks) {
-  let inProgressCount = 0;
-  let todoCount = 0;
-  let completedCount = 0;
-
-  tasks?.forEach((task) => {
-    switch (task.stage.toLowerCase()) {
-      case "in progress":
-        inProgressCount++;
-        break;
-      case "todo":
-        todoCount++;
-        break;
-      case "completed":
-        completedCount++;
-        break;
-      default:
-        break;
-    }
-  });
-
-  return {
-    inProgress: inProgressCount,
-    todo: todoCount,
-    completed: completedCount,
-  };
-}
